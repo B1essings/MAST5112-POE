@@ -1,120 +1,52 @@
-import React, { useState } from "react";
+import React from "react";
 import {
     View,
     Text,
-    TextInput,
     TouchableOpacity,
     FlatList,
     StyleSheet,
-    Alert,
 } from "react-native";
 
-export default function Home() {
+type MenuItem = {
+    id: string;
+    dishName: string;
+    description: string;
+    course: string;
+    price: string;
+};
 
-    const [search, setSearch] = useState("");
-    const [selectedCourse, setSelectedCourse] = useState("All Courses");
+type Props = {
+    menuItems: MenuItem[];
+    onAdd: () => void;
+};
 
-    const menuItems = [
-        {
-            id: "1",
-            name: "Chicken Pasta",
-            description: "Creamy pasta with grilled chicken",
-            course: "Main Course",
-            price: "R95.00",
-        },
-        {
-            id: "2",
-            name: "Garlic Bread",
-            description: "Toasted bread with garlic butter",
-            course: "Starter",
-            price: "R45.00",
-        },
-        {
-            id: "3",
-            name: "Chocolate Cake",
-            description: "Chocolate cake with chocolate icing",
-            course: "Dessert",
-            price: "R65.00",
-        },
-    ];
+export default function Home({ menuItems, onAdd }: Props) {
 
-    const filteredItems = menuItems.filter((item) => {//make sure its ran agaiin through the filter method to check if the item matches the search and selected course
-
-        const matchesSearch =
-            item.name.toLowerCase().includes(search.toLowerCase());
-
-        const matchesCourse =
-            selectedCourse === "All Courses" ||
-            item.course === selectedCourse;
-
-        return matchesSearch && matchesCourse;
-    });
-
-    const handleEdit = (name: string) => {
-        Alert.alert(
-            "Edit Menu Item",
-            `You selected ${name} for editing.`
-        );
-    };
-
-    const handleDelete = (name: string) => {
-        Alert.alert(
-            "Delete Menu Item",
-            `Are you sure you want to delete ${name}?`,
-            [
-                {
-                    text: "Cancel",
-                    style: "cancel",
-                },
-                {
-                    text: "Delete",
-                    style: "destructive",
-                    onPress: () => {
-                        Alert.alert(
-                            "Deleted",
-                            `${name} has been deleted.`
-                        );
-                    },
-                },
-            ]
-        );
-    };
-
-    const handleAdd = () => {
-        Alert.alert(
-            "Add Menu Item",
-            "Add Menu Item screen will open here."
-        );
-    };
-
-    const handleStatistics = () => {
-        Alert.alert(
-            "Menu Statistics",
-            "Statistics screen will open here."
-        );
-    };
-
-    const renderMenuItem = ({ item }: any) => (
+    const renderMenuItem = ({ item }: { item: MenuItem }) => (
         <View style={styles.menuCard}>
 
+            {/* Dish name and price */}
             <View style={styles.cardTop}>
 
                 <View style={styles.details}>
+
                     <Text style={styles.dishName}>
-                        {item.name}
+                        {item.dishName}
                     </Text>
 
                     <Text style={styles.description}>
                         {item.description}
                     </Text>
+
                 </View>
 
                 <Text style={styles.price}>
-                    {item.price}
+                    R{item.price}
                 </Text>
 
             </View>
 
+            {/* Course */}
             <View style={styles.cardBottom}>
 
                 <View style={styles.courseBadge}>
@@ -122,31 +54,7 @@ export default function Home() {
                         {item.course.toUpperCase()}
                     </Text>
                 </View>
-
-                <View style={styles.actions}>
-
-                    <TouchableOpacity
-                        style={styles.editButton}
-                        onPress={() => handleEdit(item.name)}
-                    >
-                        <Text style={styles.editText}>
-                            Edit
-                        </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={styles.deleteButton}
-                        onPress={() => handleDelete(item.name)}
-                    >
-                        <Text style={styles.deleteText}>
-                            Delete
-                        </Text>
-                    </TouchableOpacity>
-
-                </View>
-
             </View>
-
         </View>
     );
 
@@ -166,6 +74,7 @@ export default function Home() {
 
             </View>
 
+
             {/* Chef information */}
             <View style={styles.chefBar}>
 
@@ -179,74 +88,58 @@ export default function Home() {
 
             </View>
 
+
             {/* Main content */}
             <View style={styles.content}>
 
-                {/* Total items + filter */}
-                <View style={styles.topRow}>
+                {/* Total menu items */}
+                <Text style={styles.totalItems}>
+                    Total Menu Items: {menuItems.length}
+                </Text>
 
-                    <Text style={styles.totalItems}>
-                        Total Menu Items: {menuItems.length}
-                    </Text>
-
-                    <TouchableOpacity
-                        style={styles.filterButton}
-                        onPress={() => {
-
-                            if (selectedCourse === "All Courses") {
-                                setSelectedCourse("Starter");
-                            } else if (selectedCourse === "Starter") {
-                                setSelectedCourse("Main Course");
-                            } else if (selectedCourse === "Main Course") {
-                                setSelectedCourse("Dessert");
-                            } else {
-                                setSelectedCourse("All Courses");
-                            }
-
-                        }}
-                    >
-                        <Text style={styles.filterText}>
-                            {selectedCourse}  ˅
-                        </Text>
-                    </TouchableOpacity>
-
-                </View>
-
-                {/* Search */}
-                <TextInput
-                    style={styles.searchInput}
-                    placeholder="Search menu items..."
-                    placeholderTextColor="#9AA3B2"
-                    value={search}
-                    onChangeText={setSearch}
-                />
 
                 {/* Menu list */}
-                <FlatList
-                    data={filteredItems}
-                    keyExtractor={(item) => item.id}
-                    renderItem={renderMenuItem}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.list}
-                />
+                {menuItems.length === 0 ? (
 
-                {/* Add button */}
+                    <View style={styles.emptyContainer}>
+
+                        <Text style={styles.emptyTitle}>
+                            No Menu Items
+                        </Text>
+
+                        <Text style={styles.emptyMessage}>
+                            No menu items have been added yet.
+                        </Text>
+
+                        <Text style={styles.emptyMessage}>
+                            Add your first menu item to get started.
+                        </Text>
+
+                    </View>
+
+                ) : (
+
+                    <FlatList
+                        data={menuItems}
+                        keyExtractor={(item) => item.id}
+                        renderItem={renderMenuItem}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={styles.list}
+                    />
+
+                )}
+
+
+                {/* Add Menu Item button */}
                 <TouchableOpacity
                     style={styles.addButton}
-                    onPress={handleAdd}
+                    onPress={onAdd}
                 >
+
                     <Text style={styles.addButtonText}>
                         ＋  Add Menu Item
                     </Text>
-                </TouchableOpacity>
 
-                {/* Statistics */}
-                <TouchableOpacity
-                    onPress={handleStatistics}
-                >
-                    <Text style={styles.statistics}>
-                        Menu Statistics
-                    </Text>
                 </TouchableOpacity>
 
             </View>
@@ -255,12 +148,14 @@ export default function Home() {
     );
 }
 
+
 const styles = StyleSheet.create({
 
     container: {
         flex: 1,
         backgroundColor: "#F8F9FB",
     },
+
 
     /* Header */
 
@@ -286,6 +181,7 @@ const styles = StyleSheet.create({
         color: "#18202F",
     },
 
+
     /* Chef bar */
 
     chefBar: {
@@ -308,6 +204,7 @@ const styles = StyleSheet.create({
         color: "#18202F",
     },
 
+
     /* Content */
 
     content: {
@@ -316,45 +213,37 @@ const styles = StyleSheet.create({
         paddingTop: 18,
     },
 
-    topRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        marginBottom: 12,
-    },
-
     totalItems: {
         fontSize: 16,
         fontWeight: "bold",
         color: "#18202F",
+        marginBottom: 15,
     },
 
-    filterButton: {
-        backgroundColor: "#FFFFFF",
-        borderWidth: 1,
-        borderColor: "#D9DEE7",
-        borderRadius: 6,
-        paddingHorizontal: 10,
-        paddingVertical: 8,
+
+    /* Empty message */
+
+    emptyContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingBottom: 80,
     },
 
-    filterText: {
-        fontSize: 14,
-        color: "#4B5563",
+    emptyTitle: {
+        fontSize: 20,
+        fontWeight: "bold",
+        color: "#18202F",
+        marginBottom: 10,
     },
 
-    /* Search */
-
-    searchInput: {
-        height: 44,
-        backgroundColor: "#FFFFFF",
-        borderWidth: 1,
-        borderColor: "#D9DEE7",
-        borderRadius: 8,
-        paddingHorizontal: 15,
-        fontSize: 16,
-        marginBottom: 12,
+    emptyMessage: {
+        fontSize: 15,
+        color: "#6B7280",
+        textAlign: "center",
+        marginBottom: 5,
     },
+
 
     /* Menu list */
 
@@ -400,9 +289,12 @@ const styles = StyleSheet.create({
         color: "#18202F",
     },
 
+
+    /* Course */
+
     cardBottom: {
         flexDirection: "row",
-        justifyContent: "space-between",
+        justifyContent: "flex-start",
         alignItems: "center",
         marginTop: 15,
     },
@@ -421,36 +313,6 @@ const styles = StyleSheet.create({
         color: "#526071",
     },
 
-    actions: {
-        flexDirection: "row",
-        gap: 8,
-    },
-
-    editButton: {
-        backgroundColor: "#F0F2F5",
-        paddingHorizontal: 13,
-        paddingVertical: 8,
-        borderRadius: 4,
-    },
-
-    editText: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: "#18202F",
-    },
-
-    deleteButton: {
-        backgroundColor: "#F0F2F5",
-        paddingHorizontal: 13,
-        paddingVertical: 8,
-        borderRadius: 4,
-    },
-
-    deleteText: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: "#E11D48",
-    },
 
     /* Add button */
 
@@ -461,6 +323,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         marginTop: 5,
+        marginBottom: 15,
     },
 
     addButtonText: {
@@ -469,20 +332,4 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
     },
 
-    /* Statistics */
-
-    statistics: {
-        textAlign: "center",
-        color: "#526071",
-        fontSize: 15,
-        fontWeight: "600",
-        textDecorationLine: "underline",
-        marginTop: 22,
-        marginBottom: 15,
-    },
-
 });
-
-//creat own component 
-//use map,store the menu items in a state   to update 
-//filter method 
