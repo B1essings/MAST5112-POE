@@ -9,6 +9,8 @@ import {
     StyleSheet,
 } from "react-native";
 
+import { Picker } from "@react-native-picker/picker";
+
 
 type MenuItem = {
     id: string;
@@ -35,11 +37,11 @@ export default function AddMenuItem({ onAddItem, onCancel }: Props) {
 
     const handleAddItem = () => {
 
-        // Check if any required field is empty
+        // Check if all fields have been completed
         if (
             dishName.trim() === "" ||
             description.trim() === "" ||
-            course.trim() === "" ||
+            course === "" ||
             price.trim() === ""
         ) {
             Alert.alert(
@@ -61,18 +63,11 @@ export default function AddMenuItem({ onAddItem, onCancel }: Props) {
         };
 
 
-        // Send the new item to App.tsx
+        // Add the item
         onAddItem(newItem);
 
 
-        // Show confirmation
-        Alert.alert(
-            "Success",
-            "Menu item has been successfully added."
-        );
-
-
-        // Clear the input fields
+        // Clear the fields
         setDishName("");
         setDescription("");
         setCourse("");
@@ -140,44 +135,37 @@ export default function AddMenuItem({ onAddItem, onCancel }: Props) {
                     Course
                 </Text>
 
-                <TouchableOpacity
-                    style={styles.courseInput}
-                    onPress={() => {
+                <View style={styles.pickerContainer}>
 
-                        if (course === "") {
-                            setCourse("Starter");
-                        }
-
-                        else if (course === "Starter") {
-                            setCourse("Main Course");
-                        }
-
-                        else if (course === "Main Course") {
-                            setCourse("Dessert");
-                        }
-
-                        else {
-                            setCourse("Starter");
-                        }
-
-                    }}
-                >
-
-                    <Text
-                        style={
-                            course
-                                ? styles.courseText
-                                : styles.placeholder
-                        }
+                    <Picker
+                        selectedValue={course}
+                        onValueChange={(itemValue) => setCourse(itemValue)}
+                        style={styles.picker}
                     >
-                        {course || "Select Course"}
-                    </Text>
 
-                    <Text style={styles.arrow}>
-                        ▼
-                    </Text>
+                        <Picker.Item
+                            label="Select Course"
+                            value=""
+                        />
 
-                </TouchableOpacity>
+                        <Picker.Item
+                            label="Starter"
+                            value="Starter"
+                        />
+
+                        <Picker.Item
+                            label="Main Course"
+                            value="Main Course"
+                        />
+
+                        <Picker.Item
+                            label="Dessert"
+                            value="Dessert"
+                        />
+
+                    </Picker>
+
+                </View>
 
 
                 {/* Price */}
@@ -199,7 +187,7 @@ export default function AddMenuItem({ onAddItem, onCancel }: Props) {
                 {/* Required fields message */}
 
                 <Text style={styles.info}>
-                    ⓘ  All fields are required.
+                    ⓘ All fields are required.
                 </Text>
 
 
@@ -253,7 +241,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: 20,
-         paddingTop: 40,
+        paddingTop: 40,
         borderBottomWidth: 1,
         borderBottomColor: "#E1E5EA",
     },
@@ -314,33 +302,23 @@ const styles = StyleSheet.create({
     },
 
 
-    /* Course */
+    /* Course dropdown */
 
-    courseInput: {
-        height: 42,
+    pickerContainer: {
+        height: 50,
         backgroundColor: "#F1F2F4",
         borderWidth: 1,
         borderColor: "#E0E3E8",
         borderRadius: 7,
-        paddingHorizontal: 12,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
         marginBottom: 8,
+        justifyContent: "center",
+        paddingBottom: 5,
+        overflow: "hidden",
     },
 
-    courseText: {
-        fontSize: 14,
-        color: "#18202F",
-    },
-
-    placeholder: {
-        fontSize: 14,
-        color: "#9AA3B2",
-    },
-
-    arrow: {
-        fontSize: 12,
+    picker: {
+        height: 42,
+        width: "100%",
         color: "#18202F",
     },
 
