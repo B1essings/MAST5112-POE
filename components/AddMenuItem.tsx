@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 
 import {
@@ -7,10 +8,12 @@ import {
     TouchableOpacity,
     Alert,
     StyleSheet,
+    ScrollView,
+    KeyboardAvoidingView,
+    Platform,
 } from "react-native";
 
 import { Picker } from "@react-native-picker/picker";
-
 
 type MenuItem = {
     id: string;
@@ -20,24 +23,37 @@ type MenuItem = {
     price: string;
 };
 
-
 type Props = {
     onAddItem: (item: MenuItem) => void;
     onCancel: () => void;
+    initialItem?: MenuItem;
 };
 
+export default function AddMenuItem({
+    onAddItem,
+    onCancel,
+    initialItem,
+}: Props) {
+    const isEditing = Boolean(initialItem);
 
-export default function AddMenuItem({ onAddItem, onCancel }: Props) {
+    const [dishName, setDishName] = useState(
+        initialItem?.dishName ?? ""
+    );
 
-    const [dishName, setDishName] = useState("");
-    const [description, setDescription] = useState("");
-    const [course, setCourse] = useState("");
-    const [price, setPrice] = useState("");
+    const [description, setDescription] = useState(
+        initialItem?.description ?? ""
+    );
 
+    const [course, setCourse] = useState(
+        initialItem?.course ?? ""
+    );
 
-    const handleAddItem = () => {
+    const [price, setPrice] = useState(
+        initialItem?.price ?? ""
+    );
 
-        // Check if all fields have been completed
+    const handleSaveItem = () => {
+        // Check that all fields have been completed.
         if (
             dishName.trim() === "" ||
             description.trim() === "" ||
@@ -46,62 +62,64 @@ export default function AddMenuItem({ onAddItem, onCancel }: Props) {
         ) {
             Alert.alert(
                 "Missing Information",
-                "Please complete all fields before adding the menu item."
+                "Please complete all fields before saving the menu item."
             );
-
             return;
         }
 
+        // Validate the price.
+        const numericPrice = Number(price.trim());
 
-        // Create the new menu item
-        const newItem: MenuItem = {
-            id: Date.now().toString(),
+        if (!Number.isFinite(numericPrice) || numericPrice <= 0) {
+            Alert.alert(
+                "Invalid Price",
+                "Please enter a valid price greater than R0.00."
+            );
+            return;
+        }
+
+        // Keep the existing ID when editing.
+        const savedItem: MenuItem = {
+            id: initialItem?.id ?? Date.now().toString(),
             dishName: dishName.trim(),
             description: description.trim(),
-            course: course,
-            price: price.trim(),
+            course,
+            price: numericPrice.toFixed(2),
         };
 
-
-        // Add the item
-        onAddItem(newItem);
-
-
-        // Clear the fields
-        setDishName("");
-        setDescription("");
-        setCourse("");
-        setPrice("");
+        // Send the item back to App.tsx.
+        onAddItem(savedItem);
     };
 
-
     return (
-        <View style={styles.container}>
-
+        <KeyboardAvoidingView
+            style={styles.container}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
             {/* Header */}
-
             <View style={styles.header}>
-
-                <TouchableOpacity onPress={onCancel}>
+                <TouchableOpacity
+                    onPress={onCancel}
+                    style={styles.backButton}
+                    accessibilityRole="button"
+                    accessibilityLabel="Go back"
+                >
                     <Text style={styles.backArrow}>←</Text>
                 </TouchableOpacity>
 
                 <Text style={styles.headerTitle}>
-                    Add Menu Item
+                    {isEditing ? "Edit Menu Item" : "Add Menu Item"}
                 </Text>
-
             </View>
 
-
             {/* Form */}
-
-            <View style={styles.form}>
-
+            <ScrollView
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={styles.form}
+                showsVerticalScrollIndicator={false}
+            >
                 {/* Dish Name */}
-
-                <Text style={styles.label}>
-                    Dish Name
-                </Text>
+                <Text style={styles.label}>Dish Name</Text>
 
                 <TextInput
                     style={styles.input}
@@ -109,14 +127,13 @@ export default function AddMenuItem({ onAddItem, onCancel }: Props) {
                     placeholderTextColor="#9AA3B2"
                     value={dishName}
                     onChangeText={setDishName}
+                    autoCapitalize="words"
+                    maxLength={80}
+                    accessibilityLabel="Dish name"
                 />
 
-
                 {/* Description */}
-
-                <Text style={styles.label}>
-                    Description
-                </Text>
+                <Text style={styles.label}>Description</Text>
 
                 <TextInput
                     style={styles.descriptionInput}
@@ -126,23 +143,20 @@ export default function AddMenuItem({ onAddItem, onCancel }: Props) {
                     onChangeText={setDescription}
                     multiline
                     textAlignVertical="top"
+                    maxLength={300}
+                    accessibilityLabel="Dish description"
                 />
 
-
                 {/* Course */}
-
-                <Text style={styles.label}>
-                    Course
-                </Text>
+                <Text style={styles.label}>Course</Text>
 
                 <View style={styles.pickerContainer}>
-
                     <Picker
                         selectedValue={course}
                         onValueChange={(itemValue) => setCourse(itemValue)}
                         style={styles.picker}
+                        accessibilityLabel="Select course"
                     >
-
                         <Picker.Item
                             label="Select Course"
                             value=""
@@ -162,17 +176,11 @@ export default function AddMenuItem({ onAddItem, onCancel }: Props) {
                             label="Dessert"
                             value="Dessert"
                         />
-
                     </Picker>
-
                 </View>
 
-
                 {/* Price */}
-
-                <Text style={styles.label}>
-                    Price
-                </Text>
+                <Text style={styles.label}>Price</Text>
 
                 <TextInput
                     style={styles.input}
@@ -181,75 +189,63 @@ export default function AddMenuItem({ onAddItem, onCancel }: Props) {
                     value={price}
                     onChangeText={setPrice}
                     keyboardType="decimal-pad"
+                    maxLength={10}
+                    accessibilityLabel="Menu item price"
                 />
 
-
                 {/* Required fields message */}
-
                 <Text style={styles.info}>
                     ⓘ All fields are required.
                 </Text>
 
-
                 {/* Save button */}
-
                 <TouchableOpacity
                     style={styles.saveButton}
-                    onPress={handleAddItem}
+                    onPress={handleSaveItem}
+                    accessibilityRole="button"
                 >
-
                     <Text style={styles.saveText}>
-                        Save Menu Item
+                        {isEditing ? "Save Changes" : "Save Menu Item"}
                     </Text>
-
                 </TouchableOpacity>
 
-
                 {/* Cancel button */}
-
                 <TouchableOpacity
                     style={styles.cancelButton}
                     onPress={onCancel}
+                    accessibilityRole="button"
                 >
-
-                    <Text style={styles.cancelText}>
-                        Cancel
-                    </Text>
-
+                    <Text style={styles.cancelText}>Cancel</Text>
                 </TouchableOpacity>
-
-            </View>
-
-        </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
-
 const styles = StyleSheet.create({
-
     container: {
         flex: 1,
         backgroundColor: "#F8F9FB",
     },
 
-
     /* Header */
-
     header: {
         height: 65,
         backgroundColor: "#FFFFFF",
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: 20,
-        paddingTop: 40,
         borderBottomWidth: 1,
         borderBottomColor: "#E1E5EA",
+    },
+
+    backButton: {
+        marginRight: 20,
     },
 
     backArrow: {
         fontSize: 28,
         color: "#18202F",
-        marginRight: 20,
     },
 
     headerTitle: {
@@ -258,11 +254,10 @@ const styles = StyleSheet.create({
         color: "#18202F",
     },
 
-
     /* Form */
-
     form: {
-        padding: 16,
+        padding: 20,
+        paddingBottom: 30,
     },
 
     label: {
@@ -273,75 +268,66 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
 
-
     /* Text inputs */
-
     input: {
-        height: 42,
+        minHeight: 46,
         backgroundColor: "#F1F2F4",
         borderWidth: 1,
         borderColor: "#E0E3E8",
         borderRadius: 7,
         paddingHorizontal: 12,
-        fontSize: 14,
+        fontSize: 15,
         color: "#18202F",
-        marginBottom: 8,
+        marginBottom: 10,
     },
 
     descriptionInput: {
-        height: 82,
+        height: 100,
         backgroundColor: "#F1F2F4",
         borderWidth: 1,
         borderColor: "#E0E3E8",
         borderRadius: 7,
         paddingHorizontal: 12,
         paddingTop: 12,
-        fontSize: 14,
+        fontSize: 15,
         color: "#18202F",
-        marginBottom: 8,
+        marginBottom: 10,
     },
 
-
     /* Course dropdown */
-
     pickerContainer: {
-        height: 50,
+        minHeight: 48,
         backgroundColor: "#F1F2F4",
         borderWidth: 1,
         borderColor: "#E0E3E8",
         borderRadius: 7,
-        marginBottom: 8,
+        marginBottom: 10,
         justifyContent: "center",
-        paddingBottom: 5,
         overflow: "hidden",
     },
 
     picker: {
-        height: 42,
+        height: 48,
         width: "100%",
         color: "#18202F",
     },
 
-
     /* Information */
-
     info: {
         color: "#526071",
         fontSize: 13,
-        marginTop: 4,
-        marginBottom: 25,
+        marginTop: 8,
+        marginBottom: 28,
     },
 
-
     /* Save */
-
     saveButton: {
-        height: 48,
+        minHeight: 52,
         backgroundColor: "#364153",
         borderRadius: 7,
         justifyContent: "center",
         alignItems: "center",
-        marginBottom: 10,
+        marginBottom: 12,
     },
 
     saveText: {
@@ -350,11 +336,9 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
     },
 
-
     /* Cancel */
-
     cancelButton: {
-        height: 45,
+        minHeight: 50,
         backgroundColor: "#FFFFFF",
         borderWidth: 1,
         borderColor: "#E0E3E8",
@@ -368,5 +352,4 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: "600",
     },
-
 });
