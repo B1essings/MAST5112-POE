@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
     View,
@@ -5,6 +6,7 @@ import {
     TouchableOpacity,
     FlatList,
     StyleSheet,
+    Alert,
 } from "react-native";
 
 type MenuItem = {
@@ -18,18 +20,42 @@ type MenuItem = {
 type Props = {
     menuItems: MenuItem[];
     onAdd: () => void;
+    onEdit: (item: MenuItem) => void;
+    onDelete: (id: string) => void;
+    onStatistics: () => void;
 };
 
-export default function Home({ menuItems, onAdd }: Props) {
+export default function Home({
+    menuItems,
+    onAdd,
+    onEdit,
+    onDelete,
+    onStatistics,
+}: Props) {
+
+    const confirmDelete = (item: MenuItem) => {
+        Alert.alert(
+            "Delete Menu Item",
+            `Are you sure you want to delete "${item.dishName}"?`,
+            [
+                {
+                    text: "Cancel",
+                    style: "cancel",
+                },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: () => onDelete(item.id),
+                },
+            ]
+        );
+    };
 
     const renderMenuItem = ({ item }: { item: MenuItem }) => (
         <View style={styles.menuCard}>
 
-            {/* Dish name and price */}
             <View style={styles.cardTop}>
-
                 <View style={styles.details}>
-
                     <Text style={styles.dishName}>
                         {item.dishName}
                     </Text>
@@ -37,24 +63,42 @@ export default function Home({ menuItems, onAdd }: Props) {
                     <Text style={styles.description}>
                         {item.description}
                     </Text>
-
                 </View>
 
                 <Text style={styles.price}>
                     R{item.price}
                 </Text>
-
             </View>
 
-            {/* Course */}
             <View style={styles.cardBottom}>
-
                 <View style={styles.courseBadge}>
                     <Text style={styles.courseText}>
                         {item.course.toUpperCase()}
                     </Text>
                 </View>
             </View>
+
+            {/* Edit and Delete buttons */}
+            <View style={styles.actionButtons}>
+                <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => onEdit(item)}
+                >
+                    <Text style={styles.editButtonText}>
+                        Edit Item
+                    </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => confirmDelete(item)}
+                >
+                    <Text style={styles.deleteButtonText}>
+                        Delete
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
         </View>
     );
 
@@ -63,46 +107,32 @@ export default function Home({ menuItems, onAdd }: Props) {
 
             {/* Header */}
             <View style={styles.header}>
-
-                <Text style={styles.menuIcon}>
-                    ☰
-                </Text>
+                <Text style={styles.menuIcon}>☰</Text>
 
                 <Text style={styles.headerTitle}>
                     Restaurant Menu Manager
                 </Text>
-
             </View>
-
 
             {/* Chef information */}
             <View style={styles.chefBar}>
-
-                <Text style={styles.chefIcon}>
-                    ♙
-                </Text>
+                <Text style={styles.chefIcon}>♙</Text>
 
                 <Text style={styles.chefText}>
                     Chef: Christoffel (Active Kitchen)
                 </Text>
-
             </View>
-
 
             {/* Main content */}
             <View style={styles.content}>
 
-                {/* Total menu items */}
                 <Text style={styles.totalItems}>
                     Total Menu Items: {menuItems.length}
                 </Text>
 
-
                 {/* Menu list */}
                 {menuItems.length === 0 ? (
-
                     <View style={styles.emptyContainer}>
-
                         <Text style={styles.emptyTitle}>
                             No Menu Items
                         </Text>
@@ -114,11 +144,8 @@ export default function Home({ menuItems, onAdd }: Props) {
                         <Text style={styles.emptyMessage}>
                             Add your first menu item to get started.
                         </Text>
-
                     </View>
-
                 ) : (
-
                     <FlatList
                         data={menuItems}
                         keyExtractor={(item) => item.id}
@@ -126,38 +153,37 @@ export default function Home({ menuItems, onAdd }: Props) {
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={styles.list}
                     />
-
                 )}
 
-
-                {/* Add Menu Item button */}
+                {/* Main action buttons */}
                 <TouchableOpacity
                     style={styles.addButton}
                     onPress={onAdd}
                 >
-
                     <Text style={styles.addButtonText}>
-                        ＋  Add Menu Item
+                        ＋ Add Menu Item
                     </Text>
+                </TouchableOpacity>
 
+                <TouchableOpacity
+                    style={styles.statisticsButton}
+                    onPress={onStatistics}
+                >
+                    <Text style={styles.statisticsButtonText}>
+                        View Menu Statistics
+                    </Text>
                 </TouchableOpacity>
 
             </View>
-
         </View>
     );
 }
 
-
 const styles = StyleSheet.create({
-
     container: {
         flex: 1,
         backgroundColor: "#F8F9FB",
     },
-
-
-    /* Header */
 
     header: {
         height: 65,
@@ -165,7 +191,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: 20,
-        paddingTop: 40,
+        paddingTop: 20,
         borderBottomWidth: 1,
         borderBottomColor: "#E5E7EB",
     },
@@ -180,10 +206,8 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: "bold",
         color: "#18202F",
+        flexShrink: 1,
     },
-
-
-    /* Chef bar */
 
     chefBar: {
         height: 45,
@@ -203,15 +227,14 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: "600",
         color: "#18202F",
+        flexShrink: 1,
     },
-
-
-    /* Content */
 
     content: {
         flex: 1,
         paddingHorizontal: 27,
-        paddingTop: 35,
+        paddingTop: 25,
+        paddingBottom: 5,
     },
 
     totalItems: {
@@ -221,14 +244,11 @@ const styles = StyleSheet.create({
         marginBottom: 15,
     },
 
-
-    /* Empty message */
-
     emptyContainer: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        paddingBottom: 80,
+        paddingBottom: 40,
     },
 
     emptyTitle: {
@@ -244,9 +264,6 @@ const styles = StyleSheet.create({
         textAlign: "center",
         marginBottom: 5,
     },
-
-
-    /* Menu list */
 
     list: {
         paddingBottom: 10,
@@ -290,9 +307,6 @@ const styles = StyleSheet.create({
         color: "#18202F",
     },
 
-
-    /* Course */
-
     cardBottom: {
         flexDirection: "row",
         justifyContent: "flex-start",
@@ -314,23 +328,72 @@ const styles = StyleSheet.create({
         color: "#526071",
     },
 
+    actionButtons: {
+        flexDirection: "row",
+        gap: 10,
+        marginTop: 15,
+    },
 
-    /* Add button */
+    editButton: {
+        flex: 1,
+        backgroundColor: "#364153",
+        paddingVertical: 11,
+        borderRadius: 7,
+        alignItems: "center",
+    },
+
+    editButtonText: {
+        color: "#FFFFFF",
+        fontSize: 14,
+        fontWeight: "bold",
+    },
+
+    deleteButton: {
+        flex: 1,
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#DC2626",
+        paddingVertical: 11,
+        borderRadius: 7,
+        alignItems: "center",
+    },
+
+    deleteButtonText: {
+        color: "#DC2626",
+        fontSize: 14,
+        fontWeight: "bold",
+    },
 
     addButton: {
-        height: 52,
+        minHeight: 50,
         backgroundColor: "#364153",
         borderRadius: 7,
         justifyContent: "center",
         alignItems: "center",
         marginTop: 5,
-        marginBottom: 15,
+        marginBottom: 8,
     },
 
     addButtonText: {
         color: "#FFFFFF",
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: "bold",
     },
 
+    statisticsButton: {
+        minHeight: 46,
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#364153",
+        borderRadius: 7,
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 10,
+    },
+
+    statisticsButtonText: {
+        color: "#364153",
+        fontSize: 15,
+        fontWeight: "bold",
+    },
 });

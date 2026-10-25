@@ -22,9 +22,11 @@ type RootStackParamList = {
     AddMenuItem: undefined;
     EditMenuItem: { item: MenuItem };
     MenuStatistics: undefined;
+
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
 
 export default function App() {
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
