@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import {
     View,
     Text,
@@ -7,7 +7,10 @@ import {
     FlatList,
     StyleSheet,
     Alert,
+    TextInput,
 } from "react-native";
+
+import { Picker } from "@react-native-picker/picker";
 
 type MenuItem = {
     id: string;
@@ -33,6 +36,23 @@ export default function Home({
     onStatistics,
 }: Props) {
 
+    const [searchText, setSearchText] = useState("");
+    const [selectedCourse, setSelectedCourse] = useState("");
+
+    // Search by dish name and filter by course
+    const filteredMenuItems = menuItems.filter((item) => {
+        const matchesName = item.dishName
+            .toLowerCase()
+            .includes(searchText.trim().toLowerCase());
+
+        const matchesCourse =
+            selectedCourse === "" ||
+            item.course === selectedCourse;
+
+        return matchesName && matchesCourse;
+    });
+
+    // Confirm before deleting a dish
     const confirmDelete = (item: MenuItem) => {
         Alert.alert(
             "Delete Menu Item",
@@ -51,6 +71,7 @@ export default function Home({
         );
     };
 
+    // Display each menu item
     const renderMenuItem = ({ item }: { item: MenuItem }) => (
         <View style={styles.menuCard}>
 
@@ -130,7 +151,63 @@ export default function Home({
                     Total Menu Items: {menuItems.length}
                 </Text>
 
-                {/* Menu list */}
+                {/* Search by dish name */}
+                <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search dishes by name..."
+                    placeholderTextColor="#6B7280"
+                    value={searchText}
+                    onChangeText={setSearchText}
+                    autoCapitalize="none"
+                    clearButtonMode="while-editing"
+                />
+
+                {/* Filter by course */}
+                <View style={styles.filterContainer}>
+                    <Text style={styles.filterLabel}>
+                        Filter by course
+                    </Text>
+
+                    <Picker
+                        selectedValue={selectedCourse}
+                        onValueChange={(value) =>
+                            setSelectedCourse(value)
+                        }
+                        style={styles.coursePicker}
+                    >
+                        <Picker.Item
+                            label="All Courses"
+                            value=""
+                        />
+                        <Picker.Item
+                            label="Starter"
+                            value="Starter"
+                        />
+                        <Picker.Item
+                            label="Main Course"
+                            value="Main Course"
+                        />
+                        <Picker.Item
+                            label="Dessert"
+                            value="Dessert"
+                        />
+                    </Picker>
+                </View>
+
+                {/* Clear search and filter */}
+                <TouchableOpacity
+                    style={styles.clearButton}
+                    onPress={() => {
+                        setSearchText("");
+                        setSelectedCourse("");
+                    }}
+                >
+                    <Text style={styles.clearButtonText}>
+                        Clear Search & Filter
+                    </Text>
+                </TouchableOpacity>
+
+                {/* Menu list and empty states */}
                 {menuItems.length === 0 ? (
                     <View style={styles.emptyContainer}>
                         <Text style={styles.emptyTitle}>
@@ -138,24 +215,32 @@ export default function Home({
                         </Text>
 
                         <Text style={styles.emptyMessage}>
-                            No menu items have been added yet.
+                            Add your first menu item to get started.
+                        </Text>
+                    </View>
+                ) : filteredMenuItems.length === 0 ? (
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyTitle}>
+                            No Matching Dishes
                         </Text>
 
                         <Text style={styles.emptyMessage}>
-                            Add your first menu item to get started.
+                            Try another search or course, or clear
+                            your filters.
                         </Text>
                     </View>
                 ) : (
                     <FlatList
-                        data={menuItems}
+                        data={filteredMenuItems}
                         keyExtractor={(item) => item.id}
                         renderItem={renderMenuItem}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={styles.list}
+                        keyboardShouldPersistTaps="handled"
                     />
                 )}
 
-                {/* Main action buttons */}
+                {/* Add Menu Item */}
                 <TouchableOpacity
                     style={styles.addButton}
                     onPress={onAdd}
@@ -165,6 +250,7 @@ export default function Home({
                     </Text>
                 </TouchableOpacity>
 
+                {/* Menu Statistics */}
                 <TouchableOpacity
                     style={styles.statisticsButton}
                     onPress={onStatistics}
@@ -180,25 +266,26 @@ export default function Home({
 }
 
 const styles = StyleSheet.create({
+
     container: {
         flex: 1,
         backgroundColor: "#F8F9FB",
     },
 
     header: {
-        height: 65,
+        minHeight: 65,
         backgroundColor: "#FFFFFF",
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: 20,
-        paddingTop: 20,
+        paddingTop: 10,
         borderBottomWidth: 1,
         borderBottomColor: "#E5E7EB",
     },
 
     menuIcon: {
         fontSize: 25,
-        marginRight: 20,
+        marginRight: 15,
         color: "#18202F",
     },
 
@@ -210,7 +297,7 @@ const styles = StyleSheet.create({
     },
 
     chefBar: {
-        height: 45,
+        minHeight: 45,
         backgroundColor: "#E5E7EB",
         flexDirection: "row",
         alignItems: "center",
@@ -232,8 +319,8 @@ const styles = StyleSheet.create({
 
     content: {
         flex: 1,
-        paddingHorizontal: 27,
-        paddingTop: 25,
+        paddingHorizontal: 20,
+        paddingTop: 18,
         paddingBottom: 5,
     },
 
@@ -241,14 +328,63 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "bold",
         color: "#18202F",
-        marginBottom: 15,
+        marginBottom: 12,
+    },
+
+    searchInput: {
+        height: 46,
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#DDE2EA",
+        borderRadius: 8,
+        paddingHorizontal: 14,
+        fontSize: 15,
+        color: "#18202F",
+        marginBottom: 10,
+    },
+
+    filterContainer: {
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#DDE2EA",
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        marginBottom: 5,
+    },
+
+    filterLabel: {
+        fontSize: 13,
+        fontWeight: "600",
+        color: "#526071",
+        marginTop: 6,
+    },
+
+    coursePicker: {
+        height: 45,
+        width: "100%",
+        color: "#18202F",
+    },
+
+    clearButton: {
+        alignSelf: "flex-end",
+        paddingVertical: 8,
+        paddingHorizontal: 4,
+        marginBottom: 5,
+    },
+
+    clearButtonText: {
+        color: "#364153",
+        fontSize: 13,
+        fontWeight: "600",
+        textDecorationLine: "underline",
     },
 
     emptyContainer: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        paddingBottom: 40,
+        paddingHorizontal: 10,
+        paddingBottom: 20,
     },
 
     emptyTitle: {
@@ -365,7 +501,7 @@ const styles = StyleSheet.create({
     },
 
     addButton: {
-        minHeight: 50,
+        minHeight: 48,
         backgroundColor: "#364153",
         borderRadius: 7,
         justifyContent: "center",
@@ -381,14 +517,14 @@ const styles = StyleSheet.create({
     },
 
     statisticsButton: {
-        minHeight: 46,
+        minHeight: 44,
         backgroundColor: "#FFFFFF",
         borderWidth: 1,
         borderColor: "#364153",
         borderRadius: 7,
         justifyContent: "center",
         alignItems: "center",
-        marginBottom: 10,
+        marginBottom: 8,
     },
 
     statisticsButtonText: {
@@ -396,4 +532,5 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: "bold",
     },
+
 });
